@@ -14,7 +14,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ContextClosedEvent;
 
 @SpringBootApplication
-@MapperScan("io.pdtv.xingyan.transfer.dao")
+@MapperScan("org.hansk.tools.transfer.dao")
 public class OsstransferApplication {
 
 	private static Logger logger = LoggerFactory.getLogger(OsstransferApplication.class);
