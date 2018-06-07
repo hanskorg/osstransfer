@@ -53,5 +53,6 @@ qiniu:
   secret_key: qiniusecret
 ```
 ### 运行程序
-> ./wrapper/bin/wrapper start # 启动
-> ./wrapper/bin/wrapper stop # 停止
+ > ./wrapper/bin/wrapper start # 启动
+ > ./wrapper/bin/wrapper stop # 停止
+ 可以直接下载[osstransfer.zip](https://github.com/hanskorg/osstransfer/files/2080721/osstransfer.zip)运行
