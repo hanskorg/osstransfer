@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.hansk.tools.transfer.dao.TransferMapper" >
+    <resultMap id="transfer" type="org.hansk.tools.transfer.domain.Transfer">
+        <result property="id" column="id"/>
+        <result property="object" column="job"/>
+        <result property="status" column="transfer_status"/>
+        <result property="createTime" column="update_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    <select id="findFails" resultType="transfer">
+        SELECT * FROM transfer WHERE transfer_status = -1 limit #{start},#{limit}
+    </select>
+    <insert id="createTransfer">
+        INSERT INTO transfer (bucket, obj, transfer_status, create_time) VALUES (
+        #{bucket},
+        #{obj},
+        -1,
+        #{createTime}
+        )
+    </insert>
+    <update id="updateTransferStatus">
+        UPDATE transfer SET transfer_status = #{status} , update_time = now() WHERE id = #{id}
+    </update>
+    <select id="getUnTransfer" resultType="org.hansk.tools.transfer.domain.Transfer">
+        <if test="bucket != null">
+          SELECT
+            id as "id",
+            obj as "object",
+            bucket as "bucket",
+            transfer_status as "status",
+            create_time as "createTime",
+            update_time as "updateTime"
+            FROM transfer WHERE bucket = #{bucket} transfer_status = -1 limit #{start},#{limit}
+        </if>
+        <if test="bucket == null">
+            SELECT
+            id as "id",
+            obj as "object",
+            bucket as "bucket",
+            transfer_status as "status",
+            create_time as "createTime",
+            update_time as "updateTime"
+            FROM transfer WHERE transfer_status = -1 limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="transferCount" resultType="int">
+        select count(id) from transfer where obj = #{objectName}
+    </select>
+
+</mapper>
