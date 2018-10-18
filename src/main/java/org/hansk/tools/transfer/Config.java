@@ -2,35 +2,107 @@ package org.hansk.tools.transfer;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cglib.core.Local;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Component;
 
+import javax.naming.Name;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by guohao on 2018/5/17.
  */
-@Component
-@ConfigurationProperties(prefix="oss")
+@Configuration
+@ConfigurationProperties(prefix="transfer")
 public class Config {
-    @Value("${oss.key}")
+    @Value("${transfer.oss.key}")
     private String ossKey;
-    @Value("${oss.secret}")
+    @Value("${transfer.oss.secret}")
     private String ossSecret;
-    @Value("${oss.end_point}")
-    private String endPoint;
-    @Value("${oss.timeout}")
-    private int timeout;
-    @Value("${qiniu.access_key}")
+    @Value("${transfer.oss.end_point}")
+    private String ossEndPoint;
+    @Value("${transfer.oss.timeout}")
+    private int ossTimeout;
+
+
+    @Value("${transfer.cos.secret_id}")
+    private String cosSecretID;
+    @Value("${transfer.cos.secret_key}")
+    private String cosSecretKey;
+    @Value("${transfer.cos.app_id}")
+    private String cosAppID;
+    @Value("${transfer.cos.region}")
+    private String cosRegion;
+
+    @Value("${transfer.qiniu.access_key}")
     private String qiniuAccess;
-    @Value("${qiniu.secret_key}")
+    @Value("${transfer.qiniu.secret_key}")
     private String qiniuSecret;
-    @Value("${max_download}")
+
+
+    @Value("${transfer.max_download}")
     private int maxDownloadThread;
-    @Value("${core_download}")
+    @Value("${transfer.core_download}")
     private int coreDownloadThread;
+    private Date transferBefore;
+    //复制目标
+    private List<String> target;
+    //@Value("${transfer.oss.buckets}")，不支持复杂结构注入，配置中此项提到根
+    private List<Bucket> buckets;
 
-    private List<String> buckets;
+    public static class Bucket{
+        private String originStorage;
+        private List<String> prefix = new ArrayList<>();
+        private String originBucket;
+        private String targetStorage;
+        private String targetBucket;
 
+        public String getOriginStorage() {
+            return originStorage;
+        }
+
+        public void setOriginStorage(String originStorage) {
+            this.originStorage = originStorage;
+        }
+
+        public List<String> getPrefix() {
+            return prefix;
+        }
+
+        public void setPrefix(List<String> prefix) {
+            this.prefix = prefix;
+        }
+
+        public String getOriginBucket() {
+            return originBucket;
+        }
+
+        public void setOriginBucket(String originBucket) {
+            this.originBucket = originBucket;
+        }
+
+        public String getTargetStorage() {
+            return targetStorage;
+        }
+
+        public void setTargetStorage(String targetStorage) {
+            this.targetStorage = targetStorage;
+        }
+
+        public String getTargetBucket() {
+            return targetBucket == null || targetBucket.equals("") ? originBucket : targetBucket;
+        }
+
+        public void setTargetBucket(String targetBucket) {
+            this.targetBucket = targetBucket;
+        }
+    }
     private Status status = Status.STARTING;
 
     public enum Status{
@@ -39,16 +111,6 @@ public class Config {
         SHUTTING,
         STOP,;
     };
-
-
-
-    public String getEndPoint() {
-        return endPoint;
-    }
-
-    public void setEndPoint(String endPoint) {
-        this.endPoint = endPoint;
-    }
 
     public String getOssKey() {
         return ossKey;
@@ -66,6 +128,49 @@ public class Config {
         this.ossSecret = ossSecret;
     }
 
+    public String getOssEndPoint() {
+        return ossEndPoint;
+    }
+
+    public void setOssEndPoint(String ossEndPoint) {
+        this.ossEndPoint = ossEndPoint;
+    }
+
+    public int getOssTimeout() {
+        return ossTimeout;
+    }
+
+    public void setOssTimeout(int ossTimeout) {
+        this.ossTimeout = ossTimeout;
+    }
+
+
+    public String getCosSecretID() {
+        return cosSecretID;
+    }
+
+    public void setCosSecretID(String cosSecretID) {
+        this.cosSecretID = cosSecretID;
+    }
+
+    public String getCosSecretKey() {
+        return cosSecretKey;
+    }
+
+    public void setCosSecretKey(String cosSecretKey) {
+        this.cosSecretKey = cosSecretKey;
+    }
+
+    public String getCosAppID() {
+        return cosAppID;
+    }
+
+    public void setCosAppID(String cosAppID) {
+        this.cosAppID = cosAppID;
+    }
+
+
+
     public String getQiniuAccess() {
         return qiniuAccess;
     }
@@ -82,13 +187,6 @@ public class Config {
         this.qiniuSecret = qiniuSecret;
     }
 
-    public int getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
-    }
 
     public int getMaxDownloadThread() {
         return maxDownloadThread;
@@ -106,19 +204,68 @@ public class Config {
         this.coreDownloadThread = coreDownloadThread;
     }
 
-    public List<String> getBuckets() {
-        return buckets;
-    }
-
-    public void setBuckets(List<String> buckets) {
-        this.buckets = buckets;
-    }
-
     public Status getStatus() {
         return status;
     }
 
+    public Date getTransferBefore() {
+        return transferBefore;
+    }
+
+    public void setTransferBefore(String transferBefore) {
+        try {
+            Date dateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).parse(transferBefore);
+            this.transferBefore = dateTime;
+        } catch (ParseException e) {
+            this.transferBefore = new Date();
+        }
+    }
+
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public String getCosRegion() {
+        return cosRegion;
+    }
+
+    public void setCosRegion(String cosRegion) {
+        this.cosRegion = cosRegion;
+    }
+
+    public List<String> getTarget() {
+        return target;
+    }
+
+    public void setTarget(List<String> target) {
+        this.target = target;
+    }
+
+    public List<Bucket> getBuckets() {
+        return buckets;
+    }
+
+    public void setBuckets(List<Bucket> buckets) {
+        this.buckets = buckets;
+    }
+
+    @Override
+    public String toString() {
+        return "Config{" +
+                "ossKey='" + ossKey + '\'' +
+                ", ossSecret='" + ossSecret + '\'' +
+                ", ossEndPoint='" + ossEndPoint + '\'' +
+                ", ossTimeout=" + ossTimeout +
+                ", cosSecretID='" + cosSecretID + '\'' +
+                ", cosSecretKey='" + cosSecretKey + '\'' +
+                ", cosAppID='" + cosAppID + '\'' +
+                ", cosRegion='" + cosRegion + '\'' +
+                ", qiniuAccess='" + qiniuAccess + '\'' +
+                ", qiniuSecret='" + qiniuSecret + '\'' +
+                ", maxDownloadThread=" + maxDownloadThread +
+                ", coreDownloadThread=" + coreDownloadThread +
+                ", transferBefore=" + transferBefore +
+                ", status=" + status +
+                '}';
     }
 }

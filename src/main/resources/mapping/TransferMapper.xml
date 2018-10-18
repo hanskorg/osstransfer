@@ -1,51 +1,75 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="org.hansk.tools.transfer.dao.TransferMapper" >
-    <resultMap id="transfer" type="org.hansk.tools.transfer.domain.Transfer">
+
+    <resultMap id="transfer"  type="org.hansk.tools.transfer.domain.Transfer">
         <result property="id" column="id"/>
-        <result property="object" column="job"/>
+        <result property="provider" column="provider"/>
+        <result property="targetBucket" column="target_bucket"/>
+        <result property="targetProvider" column="target_provider"/>
+        <result property="bucket" column="bucket"/>
+        <result property="objectSize" column="object_size"/>
         <result property="status" column="transfer_status"/>
         <result property="createTime" column="update_time"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
-    <select id="findFails" resultType="transfer">
+    <select id="findFails" resultMap="transfer">
         SELECT * FROM transfer WHERE transfer_status = -1 limit #{start},#{limit}
     </select>
     <insert id="createTransfer">
-        INSERT INTO transfer (bucket, obj, transfer_status, create_time) VALUES (
+        INSERT INTO transfer (provider, bucket, target_provider, target_bucket, obj, object_size, transfer_status, create_time) VALUES (
+        #{provider},
         #{bucket},
+        #{targetProvider},
+        #{targetBucket},
         #{obj},
+        #{objectSize},
         -1,
         #{createTime}
         )
     </insert>
     <update id="updateTransferStatus">
-        UPDATE transfer SET transfer_status = #{status} , update_time = now() WHERE id = #{id}
+        UPDATE transfer SET transfer_status = #{status}, target_provider = #{targetProvider}, update_time = now() WHERE id = #{id}
     </update>
     <select id="getUnTransfer" resultType="org.hansk.tools.transfer.domain.Transfer">
         <if test="bucket != null">
           SELECT
             id as "id",
             obj as "object",
+            object_size as "objectSize",
+            provider as "provider",
             bucket as "bucket",
+            target_provider as "targetProvider",
+            target_bucket as "targetBucket",
             transfer_status as "status",
             create_time as "createTime",
             update_time as "updateTime"
-            FROM transfer WHERE bucket = #{bucket} transfer_status = -1 limit #{start},#{limit}
+
+            FROM transfer WHERE provider = #{provider} AND bucket = #{bucket} transfer_status = -1 ORDER BY id DESC LIMIT #{start},#{limit}
         </if>
         <if test="bucket == null">
             SELECT
             id as "id",
             obj as "object",
+            object_size as "objectSize",
+            provider as "provider",
             bucket as "bucket",
+            target_provider as "targetProvider",
+            target_bucket as "targetBucket",
             transfer_status as "status",
             create_time as "createTime",
             update_time as "updateTime"
-            FROM transfer WHERE transfer_status = -1 limit #{start},#{limit}
+            FROM transfer WHERE transfer_status = -1 ORDER BY id DESC LIMIT #{start},#{limit}
         </if>
     </select>
     <select id="transferCount" resultType="int">
-        select count(id) from transfer where obj = #{objectName}
+        <if test="targetProvider == null">
+            select count(id) from transfer where bucket= #{bucket} AND obj = #{objectName}
+        </if>
+        <if test="targetProvider != null">
+          select count(id) from transfer where  bucket = #{bucket} AND obj = #{objectName} AND target_provider = #{targetProvider}
+        </if>
+
     </select>
 
 </mapper>

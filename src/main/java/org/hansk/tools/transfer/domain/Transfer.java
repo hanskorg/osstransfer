@@ -52,9 +52,45 @@ public class Transfer {
         this.bucket = bucket;
     }
 
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public long getObjectSize() {
+        return objectSize;
+    }
+
+    public void setObjectSize(long objectSize) {
+        this.objectSize = objectSize;
+    }
+
+    public String getTargetBucket() {
+        return targetBucket == null || targetBucket.equals("")  || targetBucket.equals("null") ? bucket : targetBucket;
+    }
+
+    public void setTargetBucket(String targetBucket) {
+        this.targetBucket = targetBucket;
+    }
+
+    public String getTargetProvider() {
+        return targetProvider;
+    }
+
+    public void setTargetProvider(String targetProvider) {
+        this.targetProvider = targetProvider;
+    }
+
     private int id;
+    private String provider;
     private String object;
+    private long objectSize;
     private String bucket;
+    private String targetBucket;
+    private String targetProvider;
     private int status;
     private String createTime;
     private String updateTime;

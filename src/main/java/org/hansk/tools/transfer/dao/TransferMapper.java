@@ -12,14 +12,14 @@ public interface TransferMapper {
 
     public List<Transfer> findFails(int start, int limit);
 
-    public void createTransfer(@Param("bucket")String bucket, @Param("obj")String object, @Param("createTime")String  createTime);
+    public void createTransfer(@Param("provider")String provider,@Param("bucket")String bucket, @Param("targetProvider")String targetProvider,@Param("targetBucket")String targetBucket, @Param("obj")String object, @Param("objectSize")long objectSize, @Param("createTime")String  createTime);
 
-    public int updateTransferStatus(@Param("id")int id, @Param("status")int status);
+    public int updateTransferStatus(@Param("id")int id, @Param("targetProvider")String targetProvider, @Param("status")int status);
 
-    public List<Transfer> getUnTransfer(@Param("bucket")String bucket, @Param("start")int start, @Param("limit")int limit);
+    public List<Transfer> getUnTransfer(@Param("provider")String provider, @Param("bucket")String bucket, @Param("start")int start, @Param("limit")int limit);
 
     public List<Transfer> getUnTransfer( @Param("start")int start, @Param("limit")int limit);
 
-    public int transferCount(@Param("objectName")String objcetName);
+    public int transferCount(@Param("bucket") String bucket, @Param("objectName")String objcetName, @Param("targetProvider") String targetProvider);
 }
 
