@@ -1,6 +1,5 @@
 package org.hansk.tools.transfer.action;
 
-import com.aliyun.oss.OSSClient;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
@@ -9,13 +8,6 @@ import com.qcloud.cos.model.COSObjectSummary;
 import com.qcloud.cos.model.ListObjectsRequest;
 import com.qcloud.cos.model.ObjectListing;
 import com.qcloud.cos.region.Region;
-import com.qiniu.common.QiniuException;
-import com.qiniu.common.Zone;
-import com.qiniu.storage.BucketManager;
-import com.qiniu.storage.Configuration;
-import com.qiniu.storage.model.FileInfo;
-import com.qiniu.storage.model.FileListing;
-import com.qiniu.util.Auth;
 import org.bouncycastle.util.Strings;
 import org.hansk.tools.transfer.Config;
 import org.hansk.tools.transfer.service.TransferService;
@@ -24,6 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by guohao on 2018/10/15.
@@ -41,12 +36,11 @@ public class FetchCosObjectRunner implements ApplicationRunner {
     private Logger logger = LoggerFactory.getLogger(FetchCosObjectRunner.class);
     private COSClient cosClient;
     private Runnable fetchRunner;
+    private Map<String, COSClient> cosClients;
     @Override
     public void run(ApplicationArguments applicationArguments) throws Exception {
-        COSCredentials cred = new BasicCOSCredentials(config.getCosSecretID(), config.getCosSecretKey());
-        ClientConfig clientConfig = new ClientConfig(new Region(config.getCosRegion()));
-        cosClient = new COSClient(cred, clientConfig);
 
+        cosClients = new HashMap<>();
         fetchRunner = new Runnable(){
 
             @Override
@@ -56,6 +50,14 @@ public class FetchCosObjectRunner implements ApplicationRunner {
                     if(!Strings.toUpperCase(bucket.getOriginStorage()).equals("COS")){
                         continue;
                     }
+                    COSClient cosClient       = null;
+                    if(!cosClients.containsKey(bucket.getOriginBucket())){
+                        COSCredentials cred       = new BasicCOSCredentials(config.getCosSecretID(), config.getCosSecretKey());
+                        ClientConfig clientConfig = new ClientConfig(new Region(config.getCosRegion(bucket.getOriginBucket())));
+                        cosClients.put(bucket.getOriginBucket(), new COSClient(cred, clientConfig));
+                    }
+                    cosClient = cosClients.get(bucket.getOriginBucket());
+
                     if(bucket.getPrefix().isEmpty()){
                         bucket.getPrefix().add(null);
                     }
@@ -89,8 +91,9 @@ public class FetchCosObjectRunner implements ApplicationRunner {
 
                         }while (isTruncated);
                     }
-
-
+                }
+                for (Map.Entry<String, COSClient> entry: cosClients.entrySet()) {
+                    entry.getValue().shutdown();
                 }
             }
         };

@@ -1,37 +1,21 @@
 package org.hansk.tools.transfer.action;
 
-import com.aliyun.oss.common.utils.IOUtils;
-import com.aliyun.oss.model.OSSObject;
-import com.qcloud.cos.model.COSObject;
-import com.qiniu.common.QiniuException;
 import org.bouncycastle.util.Strings;
 import org.hansk.tools.transfer.Config;
 import org.hansk.tools.transfer.domain.Transfer;
 import org.hansk.tools.transfer.service.TransferService;
 import org.hansk.tools.transfer.storage.IStorage;
-import org.hansk.tools.transfer.storage.OSSClient;
 import org.hansk.tools.transfer.storage.QiniuClient;
+import org.hansk.tools.transfer.storage.TransferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
-import sun.nio.ch.IOUtil;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -76,7 +60,7 @@ public class TransferObjectRunner implements ApplicationRunner {
         };
         ThreadPoolExecutor executorPool = new ThreadPoolExecutor(config.getCoreDownloadThread(),
                 config.getMaxDownloadThread(),
-                10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(2), threadFactory, rejectionHandler);
+                10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(100), threadFactory, rejectionHandler);
         scheduledThreadPoolExecutor = Executors.newSingleThreadScheduledExecutor();
         scheduledThreadPoolExecutor.scheduleAtFixedRate(new Runnable() {
 
@@ -94,8 +78,11 @@ public class TransferObjectRunner implements ApplicationRunner {
                             try {
                                 storageObject = downClient.getObject(transfer.getBucket(), transfer.getObject());
                             } catch (Exception e) {
-                                e.printStackTrace();
                                 logger.error(transfer.getProvider() + " object get  error" + e.toString());
+                                e.printStackTrace();
+                                int times = transfer.getRetryTimes().incrementAndGet();
+                                transfer.setStatus(404);
+                                transferService.updateTransferStatus(transfer.getId(), transfer.getTargetProvider(), transfer.getStatus());
                                 return;
                             }
                             List<String> targets = transfer.getTargetProvider() == null || transfer.getTargetProvider().isEmpty()
@@ -109,7 +96,7 @@ public class TransferObjectRunner implements ApplicationRunner {
                                     isOk = uploadClient.putObject(storageObject.getContent()
                                             ,transfer.getTargetBucket()
                                             ,transfer.getObject()
-                                            ,transfer.getObjectSize()
+                                            ,storageObject.getContentLength() != 0 ? storageObject.getContentLength() :transfer.getObjectSize()
                                             ,storageObject.getContentMD5()
                                             ,null
                                             );
@@ -118,7 +105,7 @@ public class TransferObjectRunner implements ApplicationRunner {
                                 }
                                 if( isOk ) {
                                     logger.info("file upload success ["+ transfer.getProvider() + ":"+ transfer.getBucket() + " " + target + ":" + transfer.getTargetBucket()+" ;"+ transfer.getObject() + " ]");
-                                    transferService.updateTransferStatus(transfer.getId(), transfer.getTargetProvider());
+                                    transferService.updateTransferStatus(transfer.getId(), transfer.getTargetProvider(), transfer.getStatus());
                                 }else{
                                     logger.error("file upload fail ["+ transfer.getProvider() + "; "+ transfer.getBucket() + " ;"+ transfer.getObject() + " ]");
                                 }
@@ -128,6 +115,7 @@ public class TransferObjectRunner implements ApplicationRunner {
                                     storageObject.getContent().close();
                                 } catch (IOException e) {
                                     e.printStackTrace();
+                                    transfer.setStatus(502);
                                 }
                             }
                         }

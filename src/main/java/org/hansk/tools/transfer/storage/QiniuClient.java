@@ -1,7 +1,6 @@
 package org.hansk.tools.transfer.storage;
 
 import com.aliyun.oss.common.utils.IOUtils;
-import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
 import com.qiniu.http.Response;
 import com.qiniu.storage.BucketManager;
@@ -9,22 +8,20 @@ import com.qiniu.storage.Configuration;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.storage.model.BucketInfo;
 import com.qiniu.util.Auth;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.bouncycastle.util.Strings;
 import org.hansk.tools.transfer.Config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * 七牛存储客户端
@@ -53,7 +50,7 @@ public class QiniuClient implements IStorage {
         bucketManager = new BucketManager(auth,cfg);
     }
     @Override
-    public boolean putObject(InputStream objStream, String bucket, String key, long objectSize, String contentMD5, HashMap<String, String> metaData) throws Exception {
+    public boolean putObject(InputStream objStream, String bucket, String key, long objectSize, String contentMD5, Map<String, String> metaData) throws Exception {
         String upToken = auth.uploadToken(bucket, key);
         Response resp = uploadManager.put(IOUtils.readStreamAsByteArray(objStream), key, upToken);
         return resp.isOK();
@@ -81,9 +78,15 @@ public class QiniuClient implements IStorage {
         URLConnection urlConnection = url.openConnection();
         urlConnection.setConnectTimeout(0);
         urlConnection.setReadTimeout(0);
-        object.content = urlConnection.getInputStream();
-        object.setMetadata(new HashMap<>());
-        return object;
+        try{
+            object.content = urlConnection.getInputStream();
+            object.setMetadata(new HashMap<>());
+            return object;
+        }catch (FileNotFoundException exception){
+            throw new TransferException(TransferException.ErrorType.NotFound, "file not Found", exception);
+        }finally {
+            throw new TransferException();
+        }
     }
 
     public void setConfig(Config config) {

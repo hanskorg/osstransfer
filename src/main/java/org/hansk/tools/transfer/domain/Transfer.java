@@ -1,5 +1,7 @@
 package org.hansk.tools.transfer.domain;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Created by guohao on 2018/5/17.
  */
@@ -84,6 +86,10 @@ public class Transfer {
         this.targetProvider = targetProvider;
     }
 
+    public AtomicInteger getRetryTimes() {
+        return retryTimes;
+    }
+
     private int id;
     private String provider;
     private String object;
@@ -94,4 +100,5 @@ public class Transfer {
     private int status;
     private String createTime;
     private String updateTime;
+    private AtomicInteger retryTimes = new AtomicInteger(0);
 }

@@ -2,10 +2,15 @@ package org.hansk.tools.transfer.storage;
 
 import com.aliyun.oss.model.*;
 import org.hansk.tools.transfer.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -18,20 +23,67 @@ public class OSSClient implements IStorage {
 
     private Config config;
 
-    private com.aliyun.oss.OSSClient ossClient;
+    private Logger logger = LoggerFactory.getLogger(OSSClient.class);
+
+    private Map<String, com.aliyun.oss.OSSClient> ossClients;
+
+
     @Autowired
     public OSSClient(Config config){
         this.config = config;
-        ossClient = new com.aliyun.oss.OSSClient(config.getOssEndPoint(), config.getOssKey(), config.getOssSecret());
+        this.ossClients = new HashMap<>();
+        Map<String, String> headers = new HashMap<>();
+        headers.put("referer", String.format("https://%s/",config.getOssAccessDomain()));
+        headers.put("Access-Control-Allow-Origin", String.format("https://%s/",config.getOssAccessDomain()));
+
+        ossClients.put(config.getOssEndPoint(),new com.aliyun.oss.OSSClient(config.getOssEndPoint(), config.getOssKey(), config.getOssSecret()));
+
+        for (Config.Bucket bucket : config.getBuckets()) {
+            if(bucket.getOriginEndPoint() !=null && !bucket.getOriginEndPoint().equals("")&& !ossClients.containsKey(bucket.getOriginEndPoint())){
+                com.aliyun.oss.OSSClient downloader = new com.aliyun.oss.OSSClient(bucket.getOriginEndPoint(), config.getOssKey(), config.getOssSecret());
+                downloader.getClientConfiguration().setDefaultHeaders(headers);
+                ossClients.put(bucket.getOriginEndPoint(),downloader);
+            }
+            if(bucket.getTargetEndPoint() != null && !bucket.getTargetEndPoint().equals("") && !ossClients.containsKey(bucket.getTargetEndPoint())){
+                com.aliyun.oss.OSSClient uploader = new com.aliyun.oss.OSSClient(bucket.getTargetEndPoint(), config.getOssKey(), config.getOssSecret());
+                uploader.getClientConfiguration().setDefaultHeaders(headers);
+                ossClients.put(bucket.getTargetEndPoint(), uploader);
+            }
+        }
     }
     @Override
-    public boolean putObject(InputStream objStream, String bucket, String key, long objectSize, String contentMD5, HashMap<String, String> metaData) throws Exception {
+    public boolean putObject(InputStream objStream, String bucket, String key, long objectSize, String contentMD5, Map<String, String> metaData) throws Exception {
         boolean isSuccess = false;
+        com.aliyun.oss.OSSClient ossClient = ossClients.get(config.getOssEndPoint(bucket));
         //200M以下简单传输
         if(objectSize < 200 * 1024 * 1024L){
-            com.aliyun.oss.model.PutObjectResult result = ossClient.putObject( bucket, key, objStream);
-            isSuccess = result.getResponse() != null && result.getResponse().isSuccessful();
+            try{
+                logger.info(String.format("pre sample upload oss, [bucket:%s key:%s size:%d]", bucket, key, objectSize));
+                com.aliyun.oss.model.PutObjectResult result = ossClient.putObject( bucket, key, objStream);
+                if(result.getResponse() != null && result.getResponse().isSuccessful()){
+                    isSuccess = true;
+                }
+                if(result.getResponse() == null){
+                    isSuccess = ossClient.doesObjectExist(bucket,key);
+                    logger.info(String.format("oss file exist, [bucket:%s key:%s size:%d]", bucket, key, objectSize ));
+                }
+            }catch (Exception ex){
+                logger.error("OSS上传失败:" + ex.toString());
+            }
+
         }else{
+            if(ossClient.doesObjectExist(bucket,key)){
+                ObjectMetadata objectMetadata = ossClient.getObjectMetadata(bucket, key);
+                if(objectMetadata.getContentLength() == objectSize){
+                    isSuccess = true;
+                    logger.info(String.format("oss file exist, [bucket:%s key:%s size:%d]", bucket, key, objectSize ));
+                }else{
+                    //TODO ..待优化
+                    isSuccess = true;
+                    logger.info(String.format("oss file exist, but size not match [bucket:%s key:%s size:%d, exist_size:%d]", bucket, key, objectSize, objectMetadata.getContentLength() ));
+                }
+            }
+
             InitiateMultipartUploadRequest request = new InitiateMultipartUploadRequest(bucket, key);
             InitiateMultipartUploadResult result = ossClient.initiateMultipartUpload(request);
             String uploadId = result.getUploadId();
@@ -42,6 +94,7 @@ public class OSSClient implements IStorage {
             if (objectSize % partSize != 0) {
                 partCount++;
             }
+            logger.info(String.format("pre multipart upload oss, [bucket:%s key:%s size:%d part:%d]", bucket, key, objectSize, partCount));
             for (int i = 0; i < partCount; i++) {
                 long startPos = i * partSize;
                 long curPartSize = (i + 1 == partCount) ? (objectSize - startPos) : partSize;
@@ -62,10 +115,15 @@ public class OSSClient implements IStorage {
                 // 设置分片号。每一个上传的分片都有一个分片号，取值范围是1~10000，如果超出这个范围，OSS将返回InvalidArgument的错误码。
                 uploadPartRequest.setPartNumber( i + 1);
                 // 每个分片不需要按顺序上传，甚至可以在不同客户端上传，OSS会按照分片号排序组成完整的文件。
-                UploadPartResult uploadPartResult = ossClient.uploadPart(uploadPartRequest);
+                try {
+                    UploadPartResult uploadPartResult = ossClient.uploadPart(uploadPartRequest);
+                    // 每次上传分片之后，OSS的返回结果会包含一个PartETag。PartETag将被保存到partETags中。
+                    partETags.add(uploadPartResult.getPartETag());
+                }catch (Exception  ex){
+                    logger.error("分片上传失败" + ex.getMessage());
+                }
 
-                // 每次上传分片之后，OSS的返回结果会包含一个PartETag。PartETag将被保存到partETags中。
-                partETags.add(uploadPartResult.getPartETag());
+
             }
             Collections.sort(partETags, new Comparator<PartETag>() {
                 @Override
@@ -80,7 +138,6 @@ public class OSSClient implements IStorage {
                 isSuccess = true;
             }
         }
-
         return isSuccess;
     }
 
@@ -96,12 +153,13 @@ public class OSSClient implements IStorage {
     @Override
     public StorageObject getObject(String bucket, String objKey) throws Exception {
         StorageObject object = new StorageObject();
+        com.aliyun.oss.OSSClient ossClient = ossClients.get(config.getOssEndPoint(bucket));
+
         OSSObject ossObject = ossClient.getObject(new GetObjectRequest(bucket, objKey));
         object.content = ossObject.getObjectContent();
         object.setMetadata(new HashMap<>());
         object.getMetadata().put("Content-MD5",ossObject.getObjectMetadata().getContentMD5()) ;
         object.getMetadata().put("Content-Type",ossObject.getObjectMetadata().getContentType());
-//        object.getMetadata().put("Expires",ossObject.getObjectMetadata().getExpirationTime());
         object.getMetadata().put("Content-Length",ossObject.getObjectMetadata().getContentLength());
         object.getMetadata().put("Last-Modified",ossObject.getObjectMetadata().getLastModified());
         return object;
@@ -111,7 +169,4 @@ public class OSSClient implements IStorage {
         this.config = config;
     }
 
-    public void setOssClient(com.aliyun.oss.OSSClient ossClient) {
-        this.ossClient = ossClient;
-    }
 }

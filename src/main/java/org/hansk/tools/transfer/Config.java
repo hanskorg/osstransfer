@@ -2,12 +2,8 @@ package org.hansk.tools.transfer;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cglib.core.Local;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.stereotype.Component;
 
-import javax.naming.Name;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,6 +25,8 @@ public class Config {
     private String ossEndPoint;
     @Value("${transfer.oss.timeout}")
     private int ossTimeout;
+    @Value("${transfer.oss.access_domain}")
+    private String ossAccessDomain;
 
 
     @Value("${transfer.cos.secret_id}")
@@ -60,8 +58,13 @@ public class Config {
         private String originStorage;
         private List<String> prefix = new ArrayList<>();
         private String originBucket;
+        private String originRegion;
+        private String originEndPoint;
+
         private String targetStorage;
         private String targetBucket;
+        private String targetRegion;
+        private String targetEndPoint;
 
         public String getOriginStorage() {
             return originStorage;
@@ -101,6 +104,38 @@ public class Config {
 
         public void setTargetBucket(String targetBucket) {
             this.targetBucket = targetBucket;
+        }
+
+        public String getOriginRegion() {
+            return originRegion;
+        }
+
+        public void setOriginRegion(String originRegion) {
+            this.originRegion = originRegion;
+        }
+
+        public String getOriginEndPoint() {
+            return originEndPoint;
+        }
+
+        public void setOriginEndPoint(String originEndPoint) {
+            this.originEndPoint = originEndPoint;
+        }
+
+        public String getTargetRegion() {
+            return targetRegion;
+        }
+
+        public void setTargetRegion(String targetRegion) {
+            this.targetRegion = targetRegion;
+        }
+
+        public String getTargetEndPoint() {
+            return targetEndPoint;
+        }
+
+        public void setTargetEndPoint(String targetEndPoint) {
+            this.targetEndPoint = targetEndPoint;
         }
     }
     private Status status = Status.STARTING;
@@ -247,6 +282,38 @@ public class Config {
 
     public void setBuckets(List<Bucket> buckets) {
         this.buckets = buckets;
+    }
+
+    public String getCosRegion(String bucketName) {
+        for (Bucket bucket : buckets){
+            if(bucket.getOriginBucket().equals(bucketName) && bucket.getOriginRegion() != null){
+                return bucket.getOriginRegion();
+            }
+            if(bucket.getTargetBucket().equals(bucketName) && bucket.getTargetRegion() != null){
+                return bucket.getTargetRegion();
+            }
+        }
+        return this.getCosRegion();
+    }
+
+    public String getOssEndPoint(String bucketName) {
+        for (Bucket bucket : buckets){
+            if(bucket.getOriginBucket().equals(bucketName) && bucket.getOriginEndPoint() != null){
+                return bucket.getOriginEndPoint();
+            }
+            if(bucket.getTargetBucket().equals(bucketName) && bucket.getTargetEndPoint() != null){
+                return bucket.getTargetEndPoint();
+            }
+        }
+        return this.getOssEndPoint();
+    }
+
+    public String getOssAccessDomain() {
+        return ossAccessDomain;
+    }
+
+    public void setOssAccessDomain(String ossAccessDomain) {
+        this.ossAccessDomain = ossAccessDomain;
     }
 
     @Override

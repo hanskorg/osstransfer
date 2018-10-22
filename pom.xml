@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.hansk.tools</groupId>
-	<artifactId>osstransfer</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>transfer</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>osstransfer</name>
-	<description>transfer object from oss to cos stroage</description>
+	<name>transfer</name>
+	<description>transfer object from qiniu、oss、cos to [qiniu|oss|cos] stroage</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -103,7 +103,7 @@
 
 	<build>
         <!-- 输出的包名 -->
-        <finalName>osstransfer</finalName>
+        <finalName>transfer</finalName>
 
         <sourceDirectory>src/main/java</sourceDirectory>
 
@@ -152,7 +152,7 @@
                     <archive>
                         <!-- 清单文件，设置入口类和classpath -->
                         <manifest>
-                            <mainClass>org.hansk.tools.OsstransferApplication</mainClass>
+                            <mainClass>org.hansk.tools.TransferApplication</mainClass>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>

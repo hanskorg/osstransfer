@@ -7,6 +7,10 @@ import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
+import com.qcloud.cos.ClientConfig;
+import com.qcloud.cos.auth.BasicCOSCredentials;
+import com.qcloud.cos.auth.COSCredentials;
+import com.qcloud.cos.region.Region;
 import org.bouncycastle.util.Strings;
 import org.hansk.tools.transfer.Config;
 import org.hansk.tools.transfer.service.TransferService;
@@ -16,9 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by guohao on 2018/5/17.
@@ -35,11 +39,12 @@ public class FetchOssObjectRunner implements ApplicationRunner {
     @Autowired
     private Config config;
     private Logger logger = LoggerFactory.getLogger(FetchOssObjectRunner.class);
-    private OSSClient ossClient;
+    private Map<String, OSSClient> ossClients;
     private Runnable fetchRunner;
     @Override
     public void run(ApplicationArguments applicationArguments) throws Exception {
 
+        ossClients = new HashMap<>();
 
         fetchRunner = new Runnable(){
 
@@ -50,11 +55,22 @@ public class FetchOssObjectRunner implements ApplicationRunner {
                 clientConfiguration.setConnectionTimeout(config.getOssTimeout());
                 clientConfiguration.setRequestTimeout(config.getOssTimeout());
 
-                ossClient = new OSSClient(config.getOssEndPoint(), config.getOssKey(), config.getOssSecret(), clientConfiguration);
                 for (Config.Bucket bucket : config.getBuckets()){
                     if(!Strings.toUpperCase(bucket.getOriginStorage()).equals("OSS") ){
                         continue;
                     }
+
+                    OSSClient ossClient       = null;
+                    if(!ossClients.containsKey(bucket.getOriginBucket())){
+                        COSCredentials cred       = new BasicCOSCredentials(config.getCosSecretID(), config.getCosSecretKey());
+                        ClientConfig clientConfig = new ClientConfig(new Region(config.getCosRegion(bucket.getOriginBucket())));
+                        ossClients.put(
+                                bucket.getOriginBucket(),
+                                new OSSClient(config.getOssEndPoint(), config.getOssKey(), config.getOssSecret(), clientConfiguration)
+                        );
+                    }
+                    ossClient = ossClients.get(bucket.getOriginBucket());
+
                     String bucketName = bucket.getOriginBucket();
                     if(bucket.getPrefix().isEmpty()){
                         bucket.getPrefix().add(null);
@@ -94,8 +110,9 @@ public class FetchOssObjectRunner implements ApplicationRunner {
                     }
 
                 }
-                ossClient.shutdown();
-
+                for (Map.Entry<String, OSSClient> entry: ossClients.entrySet()) {
+                    entry.getValue().shutdown();
+                }
             }
         };
         Thread thread = new Thread(fetchRunner);

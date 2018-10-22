@@ -1,12 +1,9 @@
 package org.hansk.tools.transfer.storage;
 
-import com.qiniu.common.QiniuException;
-
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 /**
  * Created by guohao on 2018/10/16.
@@ -25,7 +22,7 @@ public interface IStorage {
      * @return 是否成功
      * @throws Exception
      */
-    public boolean putObject(InputStream objStream, String bucket, String key, long objectSize, String contentMD5, HashMap<String,String> metaData) throws Exception;
+    public boolean putObject(InputStream objStream, String bucket, String key, long objectSize, String contentMD5, Map<String,String> metaData) throws Exception;
 
     /**
      * 获取对象
@@ -39,7 +36,7 @@ public interface IStorage {
         HashMap<String, Object> metadata;
         InputStream content;
 
-        public HashMap<String, Object> getMetadata() {
+        public Map<String, Object> getMetadata() {
             return metadata;
         }
 
@@ -64,6 +61,7 @@ public interface IStorage {
         public Date getExpirationTime() {
             return (Date) this.metadata.get("Expires");
         }
+        public long getContentLength(){ return (long)this.metadata.get("Content-Length");}
 
     }
 }

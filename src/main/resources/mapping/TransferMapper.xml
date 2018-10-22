@@ -45,7 +45,7 @@
             create_time as "createTime",
             update_time as "updateTime"
 
-            FROM transfer WHERE provider = #{provider} AND bucket = #{bucket} transfer_status = -1 ORDER BY id DESC LIMIT #{start},#{limit}
+            FROM transfer WHERE provider = #{provider} AND bucket = #{bucket} transfer_status = -1 ORDER BY id ASC LIMIT #{start},#{limit}
         </if>
         <if test="bucket == null">
             SELECT
@@ -59,7 +59,7 @@
             transfer_status as "status",
             create_time as "createTime",
             update_time as "updateTime"
-            FROM transfer WHERE transfer_status = -1 ORDER BY id DESC LIMIT #{start},#{limit}
+            FROM transfer WHERE transfer_status = -1 ORDER BY id ASC LIMIT #{start},#{limit}
         </if>
     </select>
     <select id="transferCount" resultType="int">

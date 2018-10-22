@@ -61,8 +61,8 @@ public class TransferService {
         return transferMapper.transferCount(bucket, objectName,null) == 0;
     }
 
-    public boolean updateTransferStatus(int id, String targetProvider){
-        transferMapper.updateTransferStatus( id, targetProvider, 1);
+    public boolean updateTransferStatus(int id, String targetProvider, int status){
+        transferMapper.updateTransferStatus( id, targetProvider, status);
         return true;
     }
 
