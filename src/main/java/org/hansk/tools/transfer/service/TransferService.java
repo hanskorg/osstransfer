@@ -1,8 +1,11 @@
 package org.hansk.tools.transfer.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hansk.tools.transfer.Config;
+import org.hansk.tools.transfer.dao.ObjectsMapper;
 import org.hansk.tools.transfer.dao.OptionsMapper;
 import org.hansk.tools.transfer.dao.TransferMapper;
+import org.hansk.tools.transfer.domain.StorageObject;
 import org.hansk.tools.transfer.domain.Transfer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,20 +22,22 @@ import java.util.List;
 @Service
 public class TransferService {
     @Autowired
-    public TransferMapper transferMapper;
+    private TransferMapper transferMapper;
     @Autowired
-    public OptionsMapper optionsMapper;
+    private OptionsMapper optionsMapper;
+    @Autowired
+    private ObjectsMapper objectMapper;
     @Autowired
     private Config config;
 
-    public void preTransfer(String provider, String bucket, String targetProvider,  String targetBucket, String object, long objectSize){
+    public void preTransfer(String provider, String bucket, String targetProvider,  String targetBucket, String object, long objectSize, String cdnDomain){
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:s");
         if(targetBucket == null || targetBucket.equals("")){
             targetBucket = bucket;
         }
-        transferMapper.createTransfer(provider, bucket, targetProvider, targetBucket, object, objectSize, format.format(new Date()));
+        transferMapper.createTransfer(provider, bucket, targetProvider, targetBucket, object, objectSize, cdnDomain, format.format(new Date()));
     }
-    public void preTransferNotTransfer(String provider, String bucket, String targetProvider, String targetBucket, String objectName, long objectSize){
+    public void preTransferNotTransfer(String provider, String bucket, String targetProvider, String targetBucket, String objectName, long objectSize, String cdnDomain){
 
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:s");
         List<String> targets = null;
@@ -43,7 +48,7 @@ public class TransferService {
         }
         for (String target: targets){
             if(transferMapper.transferCount(bucket, objectName, target) == 0) {
-                transferMapper.createTransfer(provider, bucket, target, targetBucket, objectName, objectSize, format.format(new Date()));
+                transferMapper.createTransfer(provider, bucket, target, targetBucket, objectName, objectSize,cdnDomain, format.format(new Date()));
             }
         }
 
@@ -61,9 +66,31 @@ public class TransferService {
         return transferMapper.transferCount(bucket, objectName,null) == 0;
     }
 
+    public List<Transfer> getTransferedList(String provider, String bucket, int status, int limit){
+        return transferMapper.getObjectListByStatus(provider, bucket, status , limit);
+    }
+
     public boolean updateTransferStatus(int id, String targetProvider, int status){
         transferMapper.updateTransferStatus( id, targetProvider, status);
         return true;
+    }
+    public boolean updateTransferStatus(int id, String targetProvider, long objectSize, int status){
+        transferMapper.updateTransferStatusWithSize( id, targetProvider, objectSize, status);
+        return true;
+    }
+
+    public List<StorageObject> getObjectList(String provider, String bucket, int status, int limit){
+        return this.objectMapper.findByStatus(provider, bucket, null, status, 0, limit);
+    }
+    public List<StorageObject> getObjectList( int status, int start, int limit){
+        return this.objectMapper.findByStatus(null, null, null,status, start, limit);
+    }
+    public List<StorageObject> getObjectList(  int start, int limit){
+        return this.objectMapper.findObject(null, null, null, start, limit);
+    }
+
+    public void updateObjectStatus(int id, int status){
+        this.objectMapper.updateStatus(id, status);
     }
 
     public String getOption(String key){
@@ -76,5 +103,17 @@ public class TransferService {
 
     public void setConfig(Config config) {
         this.config = config;
+    }
+
+    public void setTransferMapper(TransferMapper transferMapper) {
+        this.transferMapper = transferMapper;
+    }
+
+    public void setOptionsMapper(OptionsMapper optionsMapper) {
+        this.optionsMapper = optionsMapper;
+    }
+
+    public void setObjectMapper(ObjectsMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 }

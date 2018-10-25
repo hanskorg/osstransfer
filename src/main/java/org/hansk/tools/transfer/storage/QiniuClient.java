@@ -10,6 +10,7 @@ import com.qiniu.storage.model.BucketInfo;
 import com.qiniu.util.Auth;
 import org.bouncycastle.util.Strings;
 import org.hansk.tools.transfer.Config;
+import org.hansk.tools.transfer.domain.Transfer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,23 +58,33 @@ public class QiniuClient implements IStorage {
     }
 
     @Override
-    public StorageObject getObject(String bucket, String objKey) throws Exception {
+    public StorageObject getObject(Transfer transfer) throws Exception {
+        String bucket = transfer.getBucket();
+        String objKey = transfer.getObject();
         StorageObject object = new StorageObject();
-        String domain = "";
-        if(!domains.containsKey(bucket)){
-            String[] domainList = bucketManager.domainList(bucket);
-            domains.put(bucket, domainList);
+        String domain = transfer.getCdnDomain();
+        String fileUrl;
+        if(domain == null || domain.equals("")){
+            if(!domains.containsKey(bucket)){
+                String[] domainList = bucketManager.domainList(bucket);
+                domains.put(bucket, domainList);
+            }
+            String[] bucketDomains =  domains.get(bucket);
+            domain = bucketDomains[(int)Math.floor(Math.random() * bucketDomains.length)];
+        }
+        if(Strings.toLowerCase(domain).startsWith("http") || Strings.toLowerCase(domain).startsWith("https")){
+            fileUrl = domain + "/" + objKey;
+        }else{
+            fileUrl = "http://"+domain + "/" + objKey;
         }
         if(!bucketsInfo.containsKey(bucket)){
             bucketsInfo.put(bucket, bucketManager.getBucketInfo(bucket));
         }
         BucketInfo bucketInfo = bucketsInfo.get(bucket);
-        String[] bucketDomains =  domains.get(bucket);
-        String fileUrl = "http://"+ bucketDomains[1] + "/" + objKey;
-
         if (bucketInfo.getPrivate() == 1){
             fileUrl = auth.privateDownloadUrl(fileUrl);
         }
+
         URL url = new URL(fileUrl);
         URLConnection urlConnection = url.openConnection();
         urlConnection.setConnectTimeout(0);
@@ -81,12 +92,18 @@ public class QiniuClient implements IStorage {
         try{
             object.content = urlConnection.getInputStream();
             object.setMetadata(new HashMap<>());
+            object.getMetadata().put("Content-Length", urlConnection.getContentLengthLong());
+            object.getMetadata().put("Content-Type",urlConnection.getContentType());
+            object.getMetadata().put("Last-Modified",urlConnection.getLastModified());
+
             return object;
         }catch (FileNotFoundException exception){
             throw new TransferException(TransferException.ErrorType.NotFound, "file not Found", exception);
-        }finally {
-            throw new TransferException();
         }
+    }
+    @Override
+    public boolean isObjectExist(String bucket, String object) {
+        return true;
     }
 
     public void setConfig(Config config) {

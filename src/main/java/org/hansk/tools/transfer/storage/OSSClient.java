@@ -2,6 +2,8 @@ package org.hansk.tools.transfer.storage;
 
 import com.aliyun.oss.model.*;
 import org.hansk.tools.transfer.Config;
+import org.hansk.tools.transfer.domain.Transfer;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,7 +153,9 @@ public class OSSClient implements IStorage {
     }
 
     @Override
-    public StorageObject getObject(String bucket, String objKey) throws Exception {
+    public StorageObject getObject(Transfer transfer) throws Exception {
+        String bucket = transfer.getBucket();
+        String objKey = transfer.getObject();
         StorageObject object = new StorageObject();
         com.aliyun.oss.OSSClient ossClient = ossClients.get(config.getOssEndPoint(bucket));
 
@@ -161,8 +165,12 @@ public class OSSClient implements IStorage {
         object.getMetadata().put("Content-MD5",ossObject.getObjectMetadata().getContentMD5()) ;
         object.getMetadata().put("Content-Type",ossObject.getObjectMetadata().getContentType());
         object.getMetadata().put("Content-Length",ossObject.getObjectMetadata().getContentLength());
-        object.getMetadata().put("Last-Modified",ossObject.getObjectMetadata().getLastModified());
         return object;
+    }
+
+    @Override
+    public boolean isObjectExist(String bucket, String object) {
+        return true;
     }
 
     public void setConfig(Config config) {

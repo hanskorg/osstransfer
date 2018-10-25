@@ -1,6 +1,6 @@
 package org.hansk.tools.transfer.action;
 
-import com.aliyun.oss.OSSClient;
+
 import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
 import com.qiniu.storage.BucketManager;
@@ -8,8 +8,6 @@ import com.qiniu.storage.Configuration;
 import com.qiniu.storage.model.FileInfo;
 import com.qiniu.storage.model.FileListing;
 import com.qiniu.util.Auth;
-import com.qiniu.util.Base64;
-import jdk.internal.cmm.SystemResourcePressureImpl;
 import org.bouncycastle.util.Strings;
 import org.hansk.tools.transfer.Config;
 import org.hansk.tools.transfer.service.TransferService;
@@ -19,10 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 
-import java.util.Date;
-
 /**
- * Created by guohao on 2018/10/15.
+ *
+ * @author hans <mailto:hans@hansk.org>
  */
 public class FetchQiniuObjectRunner implements ApplicationRunner {
     @Autowired
@@ -41,7 +38,7 @@ public class FetchQiniuObjectRunner implements ApplicationRunner {
                 Configuration cfg = new Configuration(Zone.zone1());
                 BucketManager bucketManager = new BucketManager(auth,cfg);
                 for (Config.Bucket bucket : config.getBuckets()){
-                    if(!Strings.toUpperCase(bucket.getOriginStorage()).equals("QINIU")){
+                    if(!"QINIU".equals(Strings.toUpperCase(bucket.getOriginStorage()))){
                         continue;
                     }
                     if(bucket.getPrefix().isEmpty()){
@@ -50,7 +47,7 @@ public class FetchQiniuObjectRunner implements ApplicationRunner {
                     for(String prefix : bucket.getPrefix()){
                         String optionFlag = "next_marker-" + "qiniu" + "-"+bucket.getOriginBucket() + "-" + prefix;
                         String nextMarker = transferService.getOption(optionFlag);
-                        if(nextMarker != null && nextMarker.equals("-1")){
+                        if(nextMarker != null && "-1".equals(nextMarker)){
                             logger.info("[Bucket: "+ bucket + ", Prefix: "+ prefix + "]已经遍历完毕 =====");
                             continue;
                         }
@@ -61,7 +58,7 @@ public class FetchQiniuObjectRunner implements ApplicationRunner {
 
                                 for (FileInfo fileInfo : fileList.items) {
                                     if (fileInfo.putTime /10000  < config.getTransferBefore().getTime()) {
-                                        transferService.preTransferNotTransfer("qiniu", bucket.getOriginBucket(), bucket.getTargetStorage(),bucket.getTargetBucket(), fileInfo.key, fileInfo.fsize);
+                                        transferService.preTransferNotTransfer("qiniu", bucket.getOriginBucket(), bucket.getTargetStorage(),bucket.getTargetBucket(), fileInfo.key, fileInfo.fsize, bucket.getOriginCDNDomain());
                                         logger.info("PreTransfer: [" + bucket.getOriginStorage() + " ," + fileInfo.key + "]");
                                     }
                                 }

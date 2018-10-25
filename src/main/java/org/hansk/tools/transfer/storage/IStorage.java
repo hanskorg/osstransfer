@@ -1,5 +1,7 @@
 package org.hansk.tools.transfer.storage;
 
+import org.hansk.tools.transfer.domain.Transfer;
+
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,12 +28,10 @@ public interface IStorage {
 
     /**
      * 获取对象
-     * @param bucket
-     * @param objKey
      * @return
      */
-    public StorageObject getObject(String bucket, String objKey) throws Exception;
-
+    public StorageObject getObject(Transfer transfer) throws Exception;
+    public boolean isObjectExist(String bucket, String object);
     public class StorageObject{
         HashMap<String, Object> metadata;
         InputStream content;
@@ -61,7 +61,9 @@ public interface IStorage {
         public Date getExpirationTime() {
             return (Date) this.metadata.get("Expires");
         }
-        public long getContentLength(){ return (long)this.metadata.get("Content-Length");}
+        public long getContentLength(){
+            return (long)this.metadata.get("Content-Length");
+        }
 
     }
 }

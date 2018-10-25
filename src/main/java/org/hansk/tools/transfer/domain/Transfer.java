@@ -86,6 +86,14 @@ public class Transfer {
         this.targetProvider = targetProvider;
     }
 
+    public String getCdnDomain() {
+        return cdnDomain;
+    }
+
+    public void setCdnDomain(String cdnDomain) {
+        this.cdnDomain = cdnDomain;
+    }
+
     public AtomicInteger getRetryTimes() {
         return retryTimes;
     }
@@ -100,5 +108,6 @@ public class Transfer {
     private int status;
     private String createTime;
     private String updateTime;
+    private String cdnDomain;
     private AtomicInteger retryTimes = new AtomicInteger(0);
 }

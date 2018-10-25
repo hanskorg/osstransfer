@@ -21,7 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by guohao on 2018/10/15.
+ * COS 遍历
+ * @author guohao
  */
 public class FetchCosObjectRunner implements ApplicationRunner {
     @Autowired
@@ -84,7 +85,7 @@ public class FetchCosObjectRunner implements ApplicationRunner {
 
                             for (COSObjectSummary object : objectListing.getObjectSummaries()) {
                                 if (object.getLastModified().after(config.getTransferBefore())) {
-                                    transferService.preTransferNotTransfer("cos", bucket.getOriginBucket(),bucket.getTargetStorage(),  bucket.getTargetBucket(), object.getKey(), object.getSize());
+                                    transferService.preTransferNotTransfer("cos", bucket.getOriginBucket(),bucket.getTargetStorage(),  bucket.getTargetBucket(), object.getKey(), object.getSize(), null);
                                     logger.info("PreTransfer: [" + bucket.getOriginBucket() + " ," + object.getKey() + "]");
                                 }
                             }

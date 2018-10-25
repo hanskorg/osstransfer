@@ -5,11 +5,11 @@
 
 	<groupId>org.hansk.tools</groupId>
 	<artifactId>transfer</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.1.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>transfer</name>
-	<description>transfer object from qiniu、oss、cos to [qiniu|oss|cos] stroage</description>
+	<description>transfer storage object </description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -112,21 +112,25 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
-                    <!--<include>**/*.properties</include>-->
+                    <include>**/*.properties</include>
                     <!--<include>**/*.yml</include>-->
                 </includes>
                 <!-- 排除外置的配置文件(运行时注释上使IDE能读取到配置文件；打包时放开注释让配置文件外置方便修改) -->
                 <excludes>
-                    <exclude>config.properties</exclude>
+                    <exclude>**/application.yml</exclude>
+                    <exclude>**/transfer.sql</exclude>
                 </excludes>
             </resource>
             <!-- 配置文件外置的资源(存放到config目录，也是classpath路径，下面会配置) -->
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
-                    <include>*.properties</include>
-                    <include>*.yml</include>
+                    <include>log4j.properties</include>
+                    <include>application.yml.sample</include>
                 </includes>
+                <excludes>
+                    <exclude>application.yml</exclude>
+                </excludes>
                 <targetPath>${project.build.directory}/config</targetPath>
             </resource>
         </resources>
@@ -157,9 +161,9 @@
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
                         <!-- 给清单文件添加键值对，增加classpath路径,这里将config目录也设置为classpath路径 -->
-                        <manifestEntries>
-                            <Class-Path>config/</Class-Path>
-                        </manifestEntries>
+                        <!--<manifestEntries>-->
+                            <!--<Class-Path>config/</Class-Path>-->
+                        <!--</manifestEntries>-->
                     </archive>
                     <classesDirectory>
                     </classesDirectory>

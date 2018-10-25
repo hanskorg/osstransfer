@@ -90,7 +90,7 @@ public class FetchOssObjectRunner implements ApplicationRunner {
                                 List<OSSObjectSummary> sums = objectListing.getObjectSummaries();
                                 for (OSSObjectSummary s : sums) {
                                     if(s.getLastModified().before(config.getTransferBefore())){
-                                        transferService.preTransferNotTransfer("OSS",bucket.getOriginBucket(), bucket.getTargetStorage(), bucket.getTargetBucket(), s.getKey(), s.getSize());
+                                        transferService.preTransferNotTransfer("OSS",bucket.getOriginBucket(), bucket.getTargetStorage(), bucket.getTargetBucket(), s.getKey(), s.getSize(), null);
                                         logger.info("[" + s.getBucketName() + " ,"+ s.getKey() + "]");
                                     }
                                 }

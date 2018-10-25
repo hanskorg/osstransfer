@@ -49,7 +49,6 @@ public class TransferObjectRunner implements ApplicationRunner {
             @Override
             public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
                 synchronized (this) {
-                    //logger.warn(r.toString() + " is rejected");
                     try {
                         scheduledThreadPoolExecutor.awaitTermination(500,TimeUnit.MILLISECONDS);
                     } catch (InterruptedException e) {
@@ -66,7 +65,7 @@ public class TransferObjectRunner implements ApplicationRunner {
 
             @Override
             public void run() {
-                List<Transfer> unTransferList =  transferService.getUnTransfers(config.getMaxDownloadThread());
+                List<Transfer> unTransferList =  transferService.getUnTransfers(config.getMaxDownloadThread() *2);
                 for (Transfer transfer : unTransferList){
                     executorPool.execute( new Runnable(){
                         @Override
@@ -76,7 +75,7 @@ public class TransferObjectRunner implements ApplicationRunner {
                             IStorage downClient = null;
                             downClient = (IStorage) applicationContext.getBean(Strings.toUpperCase(transfer.getProvider()));
                             try {
-                                storageObject = downClient.getObject(transfer.getBucket(), transfer.getObject());
+                                storageObject = downClient.getObject(transfer);
                             } catch (Exception e) {
                                 logger.error(transfer.getProvider() + " object get  error" + e.toString());
                                 e.printStackTrace();
@@ -101,13 +100,19 @@ public class TransferObjectRunner implements ApplicationRunner {
                                             ,null
                                             );
                                 } catch (Exception e) {
+                                    transfer.setStatus(502);
                                     e.printStackTrace();
                                 }
                                 if( isOk ) {
+                                    transfer.setStatus(1);
                                     logger.info("file upload success ["+ transfer.getProvider() + ":"+ transfer.getBucket() + " " + target + ":" + transfer.getTargetBucket()+" ;"+ transfer.getObject() + " ]");
-                                    transferService.updateTransferStatus(transfer.getId(), transfer.getTargetProvider(), transfer.getStatus());
                                 }else{
                                     logger.error("file upload fail ["+ transfer.getProvider() + "; "+ transfer.getBucket() + " ;"+ transfer.getObject() + " ]");
+                                }
+                                if(transfer.getObjectSize() > 0 ){
+                                    transferService.updateTransferStatus(transfer.getId(), transfer.getTargetProvider(), transfer.getStatus());
+                                }else{
+                                    transferService.updateTransferStatus(transfer.getId(), transfer.getTargetProvider(), storageObject.getContentLength(), transfer.getStatus());
                                 }
                             }
                             if (storageObject != null && storageObject.getContent() != null){
@@ -115,7 +120,6 @@ public class TransferObjectRunner implements ApplicationRunner {
                                     storageObject.getContent().close();
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                    transfer.setStatus(502);
                                 }
                             }
                         }

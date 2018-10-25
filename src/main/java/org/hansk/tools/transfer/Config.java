@@ -1,5 +1,6 @@
 package org.hansk.tools.transfer;
 
+import org.bouncycastle.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -48,6 +49,9 @@ public class Config {
     private int maxDownloadThread;
     @Value("${transfer.core_download}")
     private int coreDownloadThread;
+    @Value("${transfer.max_check_thread}")
+    private int maxCheckThread;
+
     private Date transferBefore;
     //复制目标
     private List<String> target;
@@ -60,11 +64,14 @@ public class Config {
         private String originBucket;
         private String originRegion;
         private String originEndPoint;
+        private String originCDNDomain;
 
         private String targetStorage;
         private String targetBucket;
         private String targetRegion;
         private String targetEndPoint;
+        private String targetCDNDomain;
+
 
         public String getOriginStorage() {
             return originStorage;
@@ -136,6 +143,22 @@ public class Config {
 
         public void setTargetEndPoint(String targetEndPoint) {
             this.targetEndPoint = targetEndPoint;
+        }
+
+        public String getOriginCDNDomain() {
+            return originCDNDomain;
+        }
+
+        public void setOriginCDNDomain(String originCDNDomain) {
+            this.originCDNDomain = originCDNDomain;
+        }
+
+        public String getTargetCDNDomain() {
+            return targetCDNDomain;
+        }
+
+        public void setTargetCDNDomain(String targetCDNDomain) {
+            this.targetCDNDomain = targetCDNDomain;
         }
     }
     private Status status = Status.STARTING;
@@ -316,6 +339,14 @@ public class Config {
         this.ossAccessDomain = ossAccessDomain;
     }
 
+    public int getMaxCheckThread() {
+        return maxCheckThread;
+    }
+
+    public void setMaxCheckThread(int maxCheckThread) {
+        this.maxCheckThread = maxCheckThread;
+    }
+
     @Override
     public String toString() {
         return "Config{" +
@@ -323,6 +354,7 @@ public class Config {
                 ", ossSecret='" + ossSecret + '\'' +
                 ", ossEndPoint='" + ossEndPoint + '\'' +
                 ", ossTimeout=" + ossTimeout +
+                ", ossAccessDomain='" + ossAccessDomain + '\'' +
                 ", cosSecretID='" + cosSecretID + '\'' +
                 ", cosSecretKey='" + cosSecretKey + '\'' +
                 ", cosAppID='" + cosAppID + '\'' +
@@ -331,7 +363,10 @@ public class Config {
                 ", qiniuSecret='" + qiniuSecret + '\'' +
                 ", maxDownloadThread=" + maxDownloadThread +
                 ", coreDownloadThread=" + coreDownloadThread +
+                ", maxCheckThread=" + maxCheckThread +
                 ", transferBefore=" + transferBefore +
+                ", target=" + target +
+                ", buckets=" + buckets +
                 ", status=" + status +
                 '}';
     }

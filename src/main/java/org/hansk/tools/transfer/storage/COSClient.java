@@ -10,6 +10,7 @@ import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.region.Region;
 import org.hansk.tools.transfer.Config;
+import org.hansk.tools.transfer.domain.Transfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +94,15 @@ public class COSClient implements IStorage {
     }
 
     @Override
-    public StorageObject getObject(String bucket, String objKey) throws Exception {
+    public boolean isObjectExist(String bucket, String object) {
+        com.qcloud.cos.COSClient cosClient = cosClients.get(config.getCosRegion(bucket));
+        return cosClient.doesObjectExist(bucket, object);
+    }
+
+    @Override
+    public StorageObject getObject(Transfer transfer) throws Exception {
+        String bucket = transfer.getBucket();
+        String objKey = transfer.getObject();
         //基于bucket设置Region
         StorageObject object = new StorageObject();
         COSObject cosObject = cosClients.get(config.getCosRegion(bucket)).getObject(bucket, objKey);
