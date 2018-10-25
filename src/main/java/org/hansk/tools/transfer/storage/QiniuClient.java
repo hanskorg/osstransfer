@@ -16,11 +16,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -110,24 +107,4 @@ public class QiniuClient implements IStorage {
         this.config = config;
     }
 
-    private String specialSign(String objectKey){
-        String key = "ac9b46abb8883e98aeb8e998b588129a1ea989a9";
-        Integer timeStamp = (int)(System.currentTimeMillis() / 1000);
-        String timestampHex = Integer.toHexString(timeStamp);
-        String newObjectKey = objectKey;
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(("/" + key + objectKey + timestampHex).getBytes());
-            byte[] secretBytes = md.digest();
-            String encodeStr = new BigInteger(1, secretBytes).toString(16);
-            for (int i = 0; i < 32 - encodeStr.length(); i++) {
-                encodeStr = "0" + encodeStr;
-            }
-            newObjectKey = String.format("%s?sign=%s&t=%s", objectKey, Strings.toLowerCase(encodeStr), timestampHex);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return newObjectKey;
-
-    }
 }
