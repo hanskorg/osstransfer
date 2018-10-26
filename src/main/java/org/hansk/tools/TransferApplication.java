@@ -36,7 +36,7 @@ public class TransferApplication {
 
 			@Override
 			public void onApplicationEvent(ContextClosedEvent contextClosedEvent) {
-				TransferApplication.logger.info("shudowning");
+				TransferApplication.logger.info("shutdowning");
 				configurableApplicationContext.getBean(Config.class).setStatus(Config.Status.SHUTTING);
 				configurableApplicationContext.getBean(TransferObjectRunner.class).getScheduledThreadPoolExecutor().shutdown();
 				configurableApplicationContext.getBean(CheckIsExistsRunner.class).getScheduledThreadPoolExecutor().shutdown();

@@ -1,6 +1,5 @@
 package org.hansk.tools.transfer;
 
-import org.bouncycastle.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -45,9 +44,9 @@ public class Config {
     private String qiniuSecret;
 
 
-    @Value("${transfer.max_download}")
+    @Value("${transfer.max_trans_thread}")
     private int maxDownloadThread;
-    @Value("${transfer.core_download}")
+    @Value("${transfer.min_trans_thread}")
     private int coreDownloadThread;
     @Value("${transfer.max_check_thread}")
     private int maxCheckThread;
