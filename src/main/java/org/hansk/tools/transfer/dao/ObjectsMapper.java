@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface ObjectsMapper {
 
-    public List<StorageObject> findByStatus(@Param("provider")String provider, @Param("bucket")String bucket, @Param("objectKey")String objectKey, @Param("status")int status, @Param("start")int start, @Param("limit")int limit);
+    public List<StorageObject> findByStatus(@Param("provider")String provider, @Param("bucket")String bucket,@Param("status")int status, @Param("start")int start, @Param("limit")int limit);
     public List<StorageObject> findObject(@Param("provider")String provider, @Param("bucket")String bucket, @Param("objectKey")String objectKey, @Param("start")int start, @Param("limit")int limit);
     public int addObject(@Param("provider")String provider
             ,@Param("bucket")String bucket

@@ -80,10 +80,10 @@ public class TransferService {
     }
 
     public List<StorageObject> getObjectList(String provider, String bucket, int status, int limit){
-        return this.objectMapper.findByStatus(provider, bucket, null, status, 0, limit);
+        return this.objectMapper.findByStatus(provider, bucket, status, 0, limit);
     }
     public List<StorageObject> getObjectList( int status, int start, int limit){
-        return this.objectMapper.findByStatus(null, null, null,status, start, limit);
+        return this.objectMapper.findByStatus(null, null,status, start, limit);
     }
     public List<StorageObject> getObjectList(  int start, int limit){
         return this.objectMapper.findObject(null, null, null, start, limit);

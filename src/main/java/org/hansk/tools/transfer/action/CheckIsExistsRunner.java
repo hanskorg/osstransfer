@@ -84,8 +84,8 @@ public class CheckIsExistsRunner implements ApplicationRunner {
                     List<StorageObject> objectList = transferService.getObjectList(0, index, maxFetchNum);
                     if(objectList.size() == 0 || CheckIsExistsRunner.this.objectList.size() > maxFetchNum){
                         try {
-                            Thread.sleep(10000);
-                            logger.info("no objects here wait 10s");
+                            Thread.sleep(30000);
+                            logger.info("no objects here wait 30s");
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
