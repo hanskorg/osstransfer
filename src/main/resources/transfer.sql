@@ -1,9 +1,3 @@
-/*
-Navicat MySQL Data Transfer
-
-Date: 2018-10-25 20:48:47
-*/
-
 SET FOREIGN_KEY_CHECKS=0;
 
 -- ----------------------------
@@ -15,6 +9,8 @@ CREATE TABLE `object_list` (
   `provider` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'COS' COMMENT '供应商',
   `bucket` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '桶名称',
   `object_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `object_size` bigint(20) DEFAULT NULL,
+  `meta_data` json DEFAULT NULL,
   `file_md5` char(32) CHARACTER SET sjis COLLATE sjis_japanese_ci DEFAULT NULL,
   `expires` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `last_check_status` smallint(4) DEFAULT '0' COMMENT '最后检测状态，0:未检测，1：存在，2：存在但状态异常，-1检测失败',
@@ -22,7 +18,7 @@ CREATE TABLE `object_list` (
   `last_check_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `provider` (`provider`,`bucket`,`object_key`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT DEFAULT CHARSET=sjis;
+) ENGINE=InnoDB AUTO_INCREMENT=1006874 DEFAULT CHARSET=sjis;
 
 -- ----------------------------
 -- Table structure for options
@@ -34,7 +30,7 @@ CREATE TABLE `options` (
   `option_value` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `option_key_uniq` (`option_key`)
-) ENGINE=InnoDB AUTO_INCREMENT DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5300 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
 -- Table structure for transfer
@@ -55,4 +51,4 @@ CREATE TABLE `transfer` (
   PRIMARY KEY (`id`),
   KEY `obj_bucket` (`bucket`,`obj`) USING BTREE,
   KEY `obj` (`obj`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2184773 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

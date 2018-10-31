@@ -82,10 +82,18 @@ public class CheckIsExistsRunner implements ApplicationRunner {
                 while(!scheduledThreadPoolExecutor.isShutdown()){
                     int maxFetchNum = config.getMaxCheckThread() * 2;
                     List<StorageObject> objectList = transferService.getObjectList(0, index, maxFetchNum);
-                    if(objectList.size() == 0 || CheckIsExistsRunner.this.objectList.size() > maxFetchNum){
+                    int sleepMillis = 0;
+                    if(objectList.size() == 0){
+                        sleepMillis = 30000;
+
+                    }
+                    if(CheckIsExistsRunner.this.objectList.size() > maxFetchNum){
+                        sleepMillis = 100;
+                    }
+                    if(sleepMillis > 0){
                         try {
-                            Thread.sleep(30000);
-                            logger.info("no objects here wait 30s");
+                            Thread.sleep(sleepMillis);
+                            logger.info(String.format("no objects here wait %.2f", (float)sleepMillis / 1000));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

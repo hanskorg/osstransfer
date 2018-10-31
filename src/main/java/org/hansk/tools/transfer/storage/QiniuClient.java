@@ -21,6 +21,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,7 +95,7 @@ public class QiniuClient implements IStorage {
             object.setMetadata(new HashMap<>());
             object.getMetadata().put("Content-Length", urlConnection.getContentLengthLong());
             object.getMetadata().put("Content-Type",urlConnection.getContentType());
-            object.getMetadata().put("Last-Modified",urlConnection.getLastModified());
+            object.getMetadata().put("Last-Modified",new Date(urlConnection.getLastModified()));
 
             return object;
         }catch (FileNotFoundException exception){

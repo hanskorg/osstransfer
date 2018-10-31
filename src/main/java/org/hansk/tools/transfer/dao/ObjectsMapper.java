@@ -23,6 +23,8 @@ public interface ObjectsMapper {
             ,@Param("status")int lastCheckTime
     );
 
+    public boolean insert(@Param("record") StorageObject object );
+    public boolean insertAll(@Param("recordList") List<StorageObject> objectList);
     public int updateStatus(@Param("id")int id, @Param("status")int status);
 
 }

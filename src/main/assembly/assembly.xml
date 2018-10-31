@@ -26,6 +26,10 @@
         </fileSet>
         <fileSet>
             <directory>target/config</directory>
+            <includes>
+                <include>log4j.properties</include>
+                <include>application.yml.sample</include>
+            </includes>
             <outputDirectory>/config</outputDirectory>
         </fileSet>
 

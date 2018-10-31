@@ -10,6 +10,7 @@
         <result property="lastCheckStatus" column="last_check_status"/>
         <result property="startTime" column="start_time"/>
         <result property="lastCheckTime" column="last_check_time"/>
+        <result property="metaData" column="meta_data" typeHandler="org.hansk.tools.transfer.domain.JSONTypeHandler"/>
     </resultMap>
     <select id="findObject" resultMap="storageObject">
         SELECT * FROM object_list WHERE
@@ -25,10 +26,10 @@
     <select id="findByStatus" resultMap="storageObject">
         SELECT * FROM object_list WHERE
         <if test="provider != null">
-        provider = #{provider} AND
+            provider = #{provider} AND
         </if>
         <if test="bucket != null">
-        bucket = #{bucket} AND
+            bucket = #{bucket} AND
         </if>
         last_check_status = #{status}
         LIMIT  #{start},#{limit}
@@ -36,16 +37,34 @@
     <update id="updateStatus" >
         UPDATE object_list SET last_check_status = #{status} WHERE id = #{id}
     </update>
-    <insert id="addObject">
-         INSERT INTO object_list (provider, bucket, object_key, file_md5, expires, last_check_status, start_time, last_check_time) VALUES (
-        #{provider},
-        #{bucket},
-        #{objectKey},
-        #{fileMD5},
-        #{expires},
-        #{lastCheckStatus},
-        #{startTime},
-        #{lastCheckTime}
-        )
+    <insert id="insertAll">
+         INSERT INTO object_list (provider, bucket, object_key, object_size, file_md5, expires, last_check_status, start_time, last_check_time)
+         VALUES
+        <foreach collection="recordList" index="index" item="record" separator=",">
+            (#{record.provider,jdbcType=VARCHAR},
+            #{record.bucketName,jdbcType=VARCHAR},
+            #{record.objectKey,jdbcType=VARCHAR},
+            #{record.size,jdbcType=BIGINT},
+            #{record.fileMD5,jdbcType=VARCHAR},
+            #{record.expires,jdbcType=TIMESTAMP},
+            #{record.lastCheckStatus,jdbcType=TINYINT},
+            #{record.startTime,jdbcType=TIMESTAMP},
+            #{record.lastCheckTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+    <insert id="insert">
+        INSERT INTO object_list (provider, bucket, object_key, object_size, file_md5, expires, last_check_status, start_time, last_check_time, meta_data)
+        VALUES
+            (#{record.provider,jdbcType=VARCHAR},
+            #{record.bucketName,jdbcType=VARCHAR},
+            #{record.objectKey,jdbcType=VARCHAR},
+            #{record.size,jdbcType=BIGINT},
+            #{record.fileMD5,jdbcType=VARCHAR},
+            #{record.expires,jdbcType=TIMESTAMP},
+            #{record.lastCheckStatus,jdbcType=TINYINT},
+            #{record.startTime,jdbcType=TIMESTAMP},
+            #{record.lastCheckTime,jdbcType=TIMESTAMP},
+            #{record.metaDataString,jdbcType=VARCHAR})
     </insert>
 </mapper>

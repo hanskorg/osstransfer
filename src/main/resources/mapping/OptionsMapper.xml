@@ -3,7 +3,7 @@
 <mapper namespace="org.hansk.tools.transfer.dao.OptionsMapper" >
 
     <select id="getValue" resultType="String">
-        SELECT option_value FROM options WHERE option_key = #{option_key}
+        SELECT option_value FROM options WHERE option_key = #{option_key} limit 1
     </select>
 
     <insert id="setValue">
@@ -12,5 +12,4 @@
           #{option_value}
         )
     </insert>
-
 </mapper>

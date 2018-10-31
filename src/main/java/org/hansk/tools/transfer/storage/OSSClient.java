@@ -165,6 +165,7 @@ public class OSSClient implements IStorage {
         object.getMetadata().put("Content-MD5",ossObject.getObjectMetadata().getContentMD5()) ;
         object.getMetadata().put("Content-Type",ossObject.getObjectMetadata().getContentType());
         object.getMetadata().put("Content-Length",ossObject.getObjectMetadata().getContentLength());
+        object.getMetadata().put("Last-Modified", ossObject.getObjectMetadata().getLastModified());
         return object;
     }
 

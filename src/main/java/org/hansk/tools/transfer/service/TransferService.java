@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by guohao on 2018/5/17.
@@ -89,6 +90,24 @@ public class TransferService {
         return this.objectMapper.findObject(null, null, null, start, limit);
     }
 
+    public boolean putObject(String provider, String bucket, String key, long size, Date createTime , Date expireTime, Map<String,Object> metaData, String hash, int status){
+        StorageObject object = new StorageObject();
+        object.setAddTime(createTime);
+        object.setBucketName(bucket);
+        object.setProvider(provider);
+        object.setObjectKey(key);
+        object.setSize(size);
+        object.setExpires(expireTime);
+        object.setStartTime(createTime);
+        object.setMetaData(metaData);
+        object.setFileMD5(hash);
+        object.setLastCheckStatus(status);
+        return this.objectMapper.insert(object);
+    }
+
+    public boolean putObjectBatch(List<StorageObject> storageObjectList){
+        return this.objectMapper.insertAll(storageObjectList);
+    }
     public void updateObjectStatus(int id, int status){
         this.objectMapper.updateStatus(id, status);
     }

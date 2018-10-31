@@ -33,7 +33,7 @@ transfer:
 
   qiniu:
     access_key: access_key
-    secret_key: secret_key
+    access_key: access_key
 
   cos:
     secret_id: secret_id
@@ -79,8 +79,8 @@ transfer:
   - cos
 
   #最小传输线程
-  core_trans_thread: 2
-  #最小传输线程
+  min_trans_thread: 2
+  #最大传输线程
   max_trans_thread: 100
   #检查对象存在的最大线程数
   max_check_thread: 10

@@ -98,7 +98,11 @@
             <artifactId>commons-Logging</artifactId>
             <version>${common.logging.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.51</version>
+        </dependency>
     </dependencies>
 
 	<build>
@@ -113,10 +117,12 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>**/*.properties</include>
-                    <include>**/*.yml</include>
+                    <include>mapping/*.xml</include>
+                    <include>**/application.yml</include>
                 </includes>
                 <!-- 排除外置的配置文件(运行时注释上使IDE能读取到配置文件；打包时放开注释让配置文件外置方便修改) -->
                 <excludes>
+                    <!--<exclude>**/application.yml</exclude>-->
                     <exclude>**/transfer.sql</exclude>
                 </excludes>
             </resource>
@@ -126,9 +132,9 @@
                 <includes>
                     <include>log4j.properties</include>
                     <include>application.yml.sample</include>
+                    <include>application.yml</include>
                 </includes>
                 <excludes>
-                    <exclude>application.yml</exclude>
                 </excludes>
                 <targetPath>${project.build.directory}/config</targetPath>
             </resource>
@@ -160,9 +166,9 @@
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
                         <!-- 给清单文件添加键值对，增加classpath路径,这里将config目录也设置为classpath路径 -->
-                        <!--<manifestEntries>-->
-                            <!--<Class-Path>config/</Class-Path>-->
-                        <!--</manifestEntries>-->
+                        <manifestEntries>
+                            <Class-Path>config/</Class-Path>
+                        </manifestEntries>
                     </archive>
                     <classesDirectory>
                     </classesDirectory>

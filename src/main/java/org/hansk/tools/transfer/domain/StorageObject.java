@@ -1,5 +1,7 @@
 package org.hansk.tools.transfer.domain;
 
+import com.alibaba.fastjson.JSON;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +14,10 @@ public class StorageObject {
     private String provider;
     private String bucketName;
     private String objectKey;
+    private long size;
     private Date addTime;
     private Map<String, Object> metaData;
+    private String metaDataString;
     private Date lastCheckTime;
     private int lastCheckStatus;
     private String fileMD5;
@@ -58,6 +62,7 @@ public class StorageObject {
 
     public void setMetaData(Map<String, Object> metaData) {
         this.metaData = metaData;
+        this.metaDataString = JSON.toJSONString(metaData);
     }
 
     public Date getLastCheckTime() {
@@ -107,4 +112,17 @@ public class StorageObject {
     public void setStartTime(Date startTime) {
         this.startTime = startTime;
     }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    public String getMetaDataString() {
+        return metaDataString;
+    }
+
 }

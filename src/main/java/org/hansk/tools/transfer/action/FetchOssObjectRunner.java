@@ -13,6 +13,7 @@ import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.region.Region;
 import org.bouncycastle.util.Strings;
 import org.hansk.tools.transfer.Config;
+import org.hansk.tools.transfer.domain.StorageObject;
 import org.hansk.tools.transfer.service.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +95,7 @@ public class FetchOssObjectRunner implements ApplicationRunner {
                                         logger.info("[" + s.getBucketName() + " ,"+ s.getKey() + "]");
                                     }
                                 }
+
                                 nextMarker  = objectListing.getNextMarker();
                                 transferService.setOption(optionFlag, nextMarker == null ? "-1" : nextMarker);
                                 isTruncated = objectListing.isTruncated();

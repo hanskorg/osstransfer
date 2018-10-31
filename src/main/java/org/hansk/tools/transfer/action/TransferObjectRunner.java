@@ -110,6 +110,26 @@ public class TransferObjectRunner implements ApplicationRunner {
                                     logger.error("file upload fail ["+ transfer.getProvider() + "; "+ transfer.getBucket() + " ;"+ transfer.getObject() + " ]");
                                 }
                                 if(transfer.getObjectSize() > 0 ){
+//                                    transferService.putObject(transfer.getProvider()
+//                                            ,transfer.getBucket()
+//                                            ,transfer.getObject()
+//                                            ,transfer.getObjectSize()
+//                                            ,storageObject.getLastModified()
+//                                            ,storageObject.getExpirationTime()
+//                                            ,storageObject.getMetadata()
+//                                            ,storageObject.getContentMD5()
+//                                            ,0
+//                                    );
+                                    transferService.putObject(transfer.getTargetProvider()
+                                            ,transfer.getTargetBucket()
+                                            ,transfer.getObject()
+                                            ,storageObject.getContentLength()
+                                            ,storageObject.getLastModified()
+                                            ,storageObject.getExpirationTime()
+                                            ,storageObject.getMetadata()
+                                            ,storageObject.getContentMD5()
+                                            ,0
+                                    );
                                     transferService.updateTransferStatus(transfer.getId(), transfer.getTargetProvider(), transfer.getStatus());
                                 }else{
                                     transferService.updateTransferStatus(transfer.getId(), transfer.getTargetProvider(), storageObject.getContentLength(), transfer.getStatus());

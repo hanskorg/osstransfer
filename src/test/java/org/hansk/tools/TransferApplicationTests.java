@@ -1,4 +1,5 @@
 package org.hansk.tools;
+import com.aliyun.oss.OSSClient;
 import org.hansk.tools.transfer.Config;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,9 @@ public class TransferApplicationTests {
 		System.out.println(config);
 	}
 	@Test
-	public void contextLoads() {
-
+	public void ossBandwidth() {
+		OSSClient ossClient = null;
+		ossClient.getBucketStat("test");
 	}
 
 }

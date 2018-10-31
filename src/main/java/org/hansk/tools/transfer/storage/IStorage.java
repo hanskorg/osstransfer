@@ -1,5 +1,6 @@
 package org.hansk.tools.transfer.storage;
 
+import net.sf.json.JSON;
 import org.hansk.tools.transfer.domain.Transfer;
 
 import java.io.InputStream;
@@ -40,6 +41,10 @@ public interface IStorage {
             return metadata;
         }
 
+        public String getMetadataString(){
+            return com.alibaba.fastjson.JSON.toJSONString(this.metadata);
+        }
+
         public void setMetadata(HashMap<String, Object> metadata) {
             this.metadata = metadata;
         }
@@ -63,6 +68,9 @@ public interface IStorage {
         }
         public long getContentLength(){
             return (long)this.metadata.get("Content-Length");
+        }
+        public Date getLastModified(){
+            return (Date)this.metadata.get("Last-Modified");
         }
 
     }
